@@ -3,12 +3,22 @@ import { pool } from "../db.js";
 // Obtener todos los resultados
 export const getResults = async (req, res) => {
   try {
-    const [result] = await pool.query("SELECT * FROM Resultados");
+    const [result] = await pool.query(`
+      SELECT 
+        r.posicion, r.pj, r.v, r.e, r.d, r.gf, r.gc, r.dg, r.pts, 
+        e.nombre AS equipo_nombre, 
+        t.nombre AS torneo_nombre
+      FROM Resultados r
+      JOIN Equipos e ON r.id_equipo = e.id_equipo
+      JOIN Torneos t ON r.id_torneo = t.id_torneo
+    `);
     res.json(result);
   } catch (error) {
+    console.error("Database error:", error);
     return res.status(500).json({ message: error.message });
   }
 };
+
 
 export const getResult = async (req, res) => {
     try {
