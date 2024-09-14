@@ -3,7 +3,7 @@ import { pool } from "../db.js";
 // Obtener todos los torneos
 export const gettournaments = async (req, res) => {
   try {
-    const [result] = await pool.query("SELECT * FROM torneo");
+    const [result] = await pool.query("SELECT * FROM Torneos");
     res.json(result);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -13,7 +13,7 @@ export const gettournaments = async (req, res) => {
 // Obtener un torneo por ID
 export const gettournament = async (req, res) => {
   try {
-    const [result] = await pool.query("SELECT * FROM torneo WHERE id = ?", [
+    const [result] = await pool.query("SELECT * FROM Torneos WHERE id_torneo = ?", [
       req.params.id,
     ]);
 
@@ -31,7 +31,7 @@ export const createtournament = async (req, res) => {
   try {
     const { nombre, anio } = req.body;
     const [result] = await pool.query(
-      "INSERT INTO torneo (nombre, anio) VALUES (?, ?)",
+      "INSERT INTO Torneos (nombre, anio) VALUES (?, ?)",
       [nombre, anio]
     );
 
@@ -48,7 +48,7 @@ export const createtournament = async (req, res) => {
 // Actualizar un torneo por ID
 export const updatetournament = async (req, res) => {
   try {
-    const [result] = await pool.query("UPDATE torneo SET ? WHERE id = ?", [
+    const [result] = await pool.query("UPDATE Torneos SET ? WHERE id_torneo = ?", [
       req.body,
       req.params.id,
     ]);
@@ -62,7 +62,7 @@ export const updatetournament = async (req, res) => {
 // Eliminar un torneo por ID
 export const deletetournament = async (req, res) => {
   try {
-    const [result] = await pool.query("DELETE FROM torneo WHERE id = ?", [
+    const [result] = await pool.query("DELETE FROM Torneos WHERE id_torneo = ?", [
       req.params.id,
     ]);
 

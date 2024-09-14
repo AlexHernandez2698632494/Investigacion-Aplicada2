@@ -5,18 +5,18 @@ export const getmatches = async (req, res) => {
   try {
     const [result] = await pool.query(`
       SELECT 
-        partidos.id, 
-        partidos.fecha, 
-        equipoLocal.nombre AS equipoLocal, 
-        equipoVisitante.nombre AS equipoVisitante, 
-        partidos.golesLocal, 
-        partidos.golesVisitante, 
-        torneo.nombre AS torneo, 
-        torneo.anio 
-      FROM partidos
-      LEFT JOIN equipos AS equipoLocal ON partidos.equipoLocalId = equipoLocal.id
-      LEFT JOIN equipos AS equipoVisitante ON partidos.equipoVisitanteId = equipoVisitante.id
-      LEFT JOIN torneo ON partidos.torneoId = torneo.id
+        p.id_partido AS id, 
+        p.fecha, 
+        el.nombre AS equipo_local, 
+        ev.nombre AS equipo_visitante, 
+        p.goles_local, 
+        p.goles_visitante, 
+        t.nombre AS torneo, 
+        t.anio 
+      FROM Partidos p
+      LEFT JOIN Equipos el ON p.equipo_local = el.id_equipo
+      LEFT JOIN Equipos ev ON p.equipo_visitante = ev.id_equipo
+      LEFT JOIN Torneos t ON p.id_torneo = t.id_torneo
     `);
     res.json(result);
   } catch (error) {
@@ -29,19 +29,19 @@ export const getmatch = async (req, res) => {
   try {
     const [result] = await pool.query(`
       SELECT 
-        partidos.id, 
-        partidos.fecha, 
-        equipoLocal.nombre AS equipoLocal, 
-        equipoVisitante.nombre AS equipoVisitante, 
-        partidos.golesLocal, 
-        partidos.golesVisitante, 
-        torneo.nombre AS torneo, 
-        torneo.anio 
-      FROM partidos
-      LEFT JOIN equipos AS equipoLocal ON partidos.equipoLocalId = equipoLocal.id
-      LEFT JOIN equipos AS equipoVisitante ON partidos.equipoVisitanteId = equipoVisitante.id
-      LEFT JOIN torneo ON partidos.torneoId = torneo.id
-      WHERE partidos.id = ?
+        p.id_partido AS id, 
+        p.fecha, 
+        el.nombre AS equipo_local, 
+        ev.nombre AS equipo_visitante, 
+        p.goles_local, 
+        p.goles_visitante, 
+        t.nombre AS torneo, 
+        t.anio 
+      FROM Partidos p
+      LEFT JOIN Equipos el ON p.equipo_local = el.id_equipo
+      LEFT JOIN Equipos ev ON p.equipo_visitante = ev.id_equipo
+      LEFT JOIN Torneos t ON p.id_torneo = t.id_torneo
+      WHERE p.id_partido = ?
     `, [req.params.id]);
 
     if (result.length === 0)
@@ -56,30 +56,30 @@ export const getmatch = async (req, res) => {
 // Crear un nuevo partido
 export const creatematch = async (req, res) => {
   try {
-    const { fecha, equipoLocalId, equipoVisitanteId, golesLocal, golesVisitante, torneoId } = req.body;
+    const { fecha, equipo_local, equipo_visitante, goles_local, goles_visitante, id_torneo } = req.body;
 
     // Validar que los equipos y el torneo existan
-    const [teamLocal] = await pool.query("SELECT * FROM equipos WHERE id = ?", [equipoLocalId]);
-    const [teamVisitante] = await pool.query("SELECT * FROM equipos WHERE id = ?", [equipoVisitanteId]);
-    const [tournament] = await pool.query("SELECT * FROM torneo WHERE id = ?", [torneoId]);
+    const [teamLocal] = await pool.query("SELECT * FROM Equipos WHERE id_equipo = ?", [equipo_local]);
+    const [teamVisitante] = await pool.query("SELECT * FROM Equipos WHERE id_equipo = ?", [equipo_visitante]);
+    const [tournament] = await pool.query("SELECT * FROM Torneos WHERE id_torneo = ?", [id_torneo]);
 
     if (teamLocal.length === 0 || teamVisitante.length === 0 || tournament.length === 0) {
       return res.status(400).json({ message: "Equipo(s) o torneo no existen" });
     }
 
     const [result] = await pool.query(
-      "INSERT INTO partidos (fecha, equipoLocalId, equipoVisitanteId, golesLocal, golesVisitante, torneoId) VALUES (?, ?, ?, ?, ?, ?)",
-      [fecha, equipoLocalId, equipoVisitanteId, golesLocal, golesVisitante, torneoId]
+      "INSERT INTO Partidos (fecha, equipo_local, equipo_visitante, goles_local, goles_visitante, id_torneo) VALUES (?, ?, ?, ?, ?, ?)",
+      [fecha, equipo_local, equipo_visitante, goles_local, goles_visitante, id_torneo]
     );
 
     res.json({
       id: result.insertId,
       fecha,
-      equipoLocalId,
-      equipoVisitanteId,
-      golesLocal,
-      golesVisitante,
-      torneoId,
+      equipo_local,
+      equipo_visitante,
+      goles_local,
+      goles_visitante,
+      id_torneo,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -89,20 +89,20 @@ export const creatematch = async (req, res) => {
 // Actualizar un partido por ID
 export const updatematch = async (req, res) => {
   try {
-    const { equipoLocalId, equipoVisitanteId, torneoId } = req.body;
+    const { equipo_local, equipo_visitante, id_torneo } = req.body;
 
     // Validar que los equipos y el torneo existan si se proporcionan
-    if (equipoLocalId || equipoVisitanteId || torneoId) {
-      const [teamLocal] = equipoLocalId ? await pool.query("SELECT * FROM equipos WHERE id = ?", [equipoLocalId]) : [null];
-      const [teamVisitante] = equipoVisitanteId ? await pool.query("SELECT * FROM equipos WHERE id = ?", [equipoVisitanteId]) : [null];
-      const [tournament] = torneoId ? await pool.query("SELECT * FROM torneo WHERE id = ?", [torneoId]) : [null];
+    if (equipo_local || equipo_visitante || id_torneo) {
+      const [teamLocal] = equipo_local ? await pool.query("SELECT * FROM Equipos WHERE id_equipo = ?", [equipo_local]) : [null];
+      const [teamVisitante] = equipo_visitante ? await pool.query("SELECT * FROM Equipos WHERE id_equipo = ?", [equipo_visitante]) : [null];
+      const [tournament] = id_torneo ? await pool.query("SELECT * FROM Torneos WHERE id_torneo = ?", [id_torneo]) : [null];
 
-      if ((equipoLocalId && teamLocal.length === 0) || (equipoVisitanteId && teamVisitante.length === 0) || (torneoId && tournament.length === 0)) {
+      if ((equipo_local && teamLocal.length === 0) || (equipo_visitante && teamVisitante.length === 0) || (id_torneo && tournament.length === 0)) {
         return res.status(400).json({ message: "Equipo(s) o torneo no existen" });
       }
     }
 
-    const [result] = await pool.query("UPDATE partidos SET ? WHERE id = ?", [
+    const [result] = await pool.query("UPDATE Partidos SET ? WHERE id_partido = ?", [
       req.body,
       req.params.id,
     ]);
@@ -116,7 +116,7 @@ export const updatematch = async (req, res) => {
 // Eliminar un partido por ID
 export const deletematch = async (req, res) => {
   try {
-    const [result] = await pool.query("DELETE FROM partidos WHERE id = ?", [
+    const [result] = await pool.query("DELETE FROM Partidos WHERE id_partido = ?", [
       req.params.id,
     ]);
 

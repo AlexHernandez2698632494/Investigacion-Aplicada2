@@ -4,9 +4,9 @@ import { pool } from "../db.js";
 export const getPlayers = async (req, res) => {
   try {
     const [result] = await pool.query(`
-      SELECT jugadores.id, jugadores.nombre, jugadores.posicion, jugadores.fechaNacimiento, equipos.nombre AS equipo
-      FROM jugadores
-      LEFT JOIN equipos ON jugadores.equipoId = equipos.id
+      SELECT Jugadores.id_jugador, Jugadores.nombre, Jugadores.posicion, Jugadores.fechaNacimiento, Equipos.nombre AS equipo
+      FROM Jugadores
+      LEFT JOIN Equipos ON Jugadores.id_equipo = Equipos.id_equipo
     `);
     res.json(result);
   } catch (error) {
@@ -18,13 +18,11 @@ export const getPlayers = async (req, res) => {
 export const getPlayer = async (req, res) => {
   try {
     const [result] = await pool.query(`
-      SELECT jugadores.id, jugadores.nombre, jugadores.posicion, jugadores.fechaNacimiento, equipos.nombre AS equipo
-      FROM jugadores
-      LEFT JOIN equipos ON jugadores.equipoId = equipos.id
-      WHERE jugadores.id = ?
-    `, [
-      req.params.id,
-    ]);
+      SELECT Jugadores.id_jugador, Jugadores.nombre, Jugadores.posicion, Jugadores.fechaNacimiento, Equipos.nombre AS equipo
+      FROM Jugadores
+      LEFT JOIN Equipos ON Jugadores.id_equipo = Equipos.id_equipo
+      WHERE Jugadores.id_jugador = ?
+    `, [req.params.id]);
 
     if (result.length == 0)
       return res.status(404).json({ message: "El jugador no fue encontrado" });
@@ -38,25 +36,25 @@ export const getPlayer = async (req, res) => {
 // Crear un nuevo jugador
 export const createPlayers = async (req, res) => {
   try {
-    const { nombre, posicion, fechaNacimiento, equipoId } = req.body;
+    const { nombre, posicion, fechaNacimiento, id_equipo } = req.body;
 
     // Validar que el equipo existe
-    const [team] = await pool.query("SELECT * FROM equipos WHERE id = ?", [equipoId]);
+    const [team] = await pool.query("SELECT * FROM Equipos WHERE id_equipo = ?", [id_equipo]);
     if (team.length === 0) {
       return res.status(400).json({ message: "El equipo no existe" });
     }
 
     const [result] = await pool.query(
-      "INSERT INTO jugadores (nombre, posicion, fechaNacimiento, equipoId) VALUES (?, ?, ?, ?)",
-      [nombre, posicion, fechaNacimiento, equipoId]
+      "INSERT INTO Jugadores (nombre, posicion, fechaNacimiento, id_equipo) VALUES (?, ?, ?, ?)",
+      [nombre, posicion, fechaNacimiento, id_equipo]
     );
 
     res.json({
-      id: result.insertId,
+      id_jugador: result.insertId,
       nombre,
       posicion,
       fechaNacimiento,
-      equipoId,
+      id_equipo,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -66,17 +64,17 @@ export const createPlayers = async (req, res) => {
 // Actualizar un jugador por ID
 export const updatePlayers = async (req, res) => {
   try {
-    const { equipoId } = req.body;
+    const { id_equipo } = req.body;
 
-    // Validar que el equipo existe si equipoId es parte del cuerpo de la solicitud
-    if (equipoId) {
-      const [team] = await pool.query("SELECT * FROM equipos WHERE id = ?", [equipoId]);
+    // Validar que el equipo existe si id_equipo es parte del cuerpo de la solicitud
+    if (id_equipo) {
+      const [team] = await pool.query("SELECT * FROM Equipos WHERE id_equipo = ?", [id_equipo]);
       if (team.length === 0) {
         return res.status(400).json({ message: "El equipo no existe" });
       }
     }
 
-    const result = await pool.query("UPDATE jugadores SET ? WHERE id = ?", [
+    const result = await pool.query("UPDATE Jugadores SET ? WHERE id_jugador = ?", [
       req.body,
       req.params.id,
     ]);
@@ -90,7 +88,7 @@ export const updatePlayers = async (req, res) => {
 // Eliminar un jugador por ID
 export const deletePlayers = async (req, res) => {
   try {
-    const [result] = await pool.query("DELETE FROM jugadores WHERE id = ?", [
+    const [result] = await pool.query("DELETE FROM Jugadores WHERE id_jugador = ?", [
       req.params.id,
     ]);
 
