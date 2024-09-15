@@ -69,6 +69,14 @@ npm install
 ## Base de Datos
 
 La base de datos se encuentra en la carpeta `database/iad.sql`.
+debera de modificar el archivo db.js que se encuentra en la carpeta de server por sus propias credenciales y su puerto de mysql
+```
+    host:'localhost',
+    port:3306,
+    user:'',
+    password:'',
+    database:'iad'
+```
 
 ## Ejecutar la API
 
