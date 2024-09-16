@@ -30,6 +30,7 @@ docker ps
 ```
 docker exec -it aguilasdoradas bash
 ```
+```
 mysql -u root  --password
 ```
 5. Escribir la contraseña `aguilasdoradas24` y presionar Enter.
