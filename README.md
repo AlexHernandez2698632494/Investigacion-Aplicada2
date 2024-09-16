@@ -30,7 +30,8 @@ docker ps
 ```
 docker exec -it aguilasdoradas bash
 ```
-
+mysql -u root  --password
+```
 5. Escribir la contraseña `aguilasdoradas24` y presionar Enter.
 
 6. Como ya se creó una base de datos, puede verificar las bases de datos con:
